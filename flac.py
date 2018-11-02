@@ -1,5 +1,4 @@
 import re
-import pyaudio
 
 
 class AudioFile:
@@ -29,7 +28,7 @@ class AudioFile:
 
     def parse_vorbis_comment(self):
         tags = {}
-        with open(self.filename) as f:
+        with open(self.filename, 'rb') as f:
             file = f.read()
             begin, end = self.positions['vorbis comment']
             block = file[begin:end]
@@ -53,7 +52,7 @@ class AudioFile:
         return tags
 
     def parse_streaminfo(self):
-        with open(self.filename) as f:
+        with open(self.filename, 'rb') as f:
             file = f.read()
             begin, end = self.positions['streaminfo']
             block = file[begin:end]
@@ -72,7 +71,7 @@ class AudioFile:
         self.streaminfo['samples_in_flow'] = int(data[28:64], 2)
 
     def parse_picture(self):
-        with open(self.filename) as f:
+        with open(self.filename, 'rb') as f:
             file = f.read()
             begin, end = self.positions['picture'][0]
             block = file[begin:end]
@@ -92,8 +91,8 @@ class AudioFile:
             pos = 4
             is_last = False
             while not is_last:
-                is_last, type_of_block, size = parse_metadata_block_header(
-                    file[pos:pos+4])
+                is_last, type_of_block, size = \
+                    self.parse_metadata_block_header(file[pos:pos+4])
                 positions = (pos+4, pos+4+size)
                 if type_of_block == 0:
                     self.positions['streaminfo'] = positions
@@ -114,10 +113,7 @@ class AudioFile:
 
 
 def main():
-    filename = 'Sample.flac'
-    file_is_flac(filename)
-    rate, channels, file = parse_metadata(filename)
-    play(rate, channels, file)
+    file = AudioFile('Sample.flac')
 
 
 if __name__ == '__main__':
