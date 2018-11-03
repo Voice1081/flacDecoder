@@ -67,8 +67,8 @@ class AudioFile:
         data = bin(int.from_bytes(block[10:18], byteorder='big'))[2:].zfill(64)
         self.streaminfo['rate'] = int(data[0:20], 2)
         self.streaminfo['channels'] = int(data[20:23], 2) + 1
-        self.streaminfo['bits_per_sample'] = int(data[23:28], 2) + 1
-        self.streaminfo['samples_in_flow'] = int(data[28:64], 2)
+        self.streaminfo['bits per sample'] = int(data[23:28], 2) + 1
+        self.streaminfo['samples in flow'] = int(data[28:64], 2)
 
     def parse_picture(self):
         with open(self.filename, 'rb') as f:
@@ -104,17 +104,3 @@ class AudioFile:
                     else:
                         self.positions['picture'].append(positions)
                 pos += size + 4
-
-    def read_frames(self):
-        pass
-
-    def play(self):
-        pass
-
-
-def main():
-    file = AudioFile('Sample.flac')
-
-
-if __name__ == '__main__':
-    main()
