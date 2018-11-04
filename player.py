@@ -18,6 +18,7 @@ class AudioWindow(QMainWindow):
         self.setWindowTitle("Flac player")
 
         self.mediaPlayer = QMediaPlayer()
+        self.file_info = None
 
         #videoWidget = QVideoWidget()
 
@@ -27,7 +28,7 @@ class AudioWindow(QMainWindow):
         self.playButton.clicked.connect(self.play)
 
         self.volumeSlider = QSlider(Qt.Vertical)
-        self.volumeSlider.setRange(0, 100)
+        self.volumeSlider.setRange(0, 0)
         self.volumeSlider.setValue(100)
         self.positionSlider = QSlider(Qt.Horizontal)
         self.positionSlider.setRange(0, 0)
@@ -37,6 +38,8 @@ class AudioWindow(QMainWindow):
         self.errorLabel = QLabel()
         self.errorLabel.setSizePolicy(QSizePolicy.Preferred,
                 QSizePolicy.Maximum)
+
+        self.info_window = InfoWindow(self.file_info)
 
         # Create new action
         openAction = QAction(QIcon('open.png'), '&Open', self)
@@ -50,10 +53,14 @@ class AudioWindow(QMainWindow):
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(self.exitCall)
 
+        infoAction = QAction('&File info', self)
+        infoAction.setStatusTip('Show file info')
+        infoAction.triggered.connect(self.showInfo)
+
         # Create menu bar and add action
         menuBar = self.menuBar()
         fileMenu = menuBar.addMenu('&File')
-        #fileMenu.addAction(newAction)
+        fileMenu.addAction(infoAction)
         fileMenu.addAction(openAction)
         fileMenu.addAction(exitAction)
 
@@ -85,12 +92,23 @@ class AudioWindow(QMainWindow):
 
     def openFile(self):
         fileName, _ = QFileDialog.getOpenFileName(self, "Open flac file",
-                QDir.homePath())
-
+                                                  QDir.homePath())
         if fileName != '':
-            self.mediaPlayer.setMedia(
+            try:
+                    self.file_info = AudioFile(fileName)
+
+            except Exception:
+                self.errorLabel.setText('Error: file is not flac')
+                self.mediaPlayer.setMedia(QMediaContent())
+                self.playButton.setEnabled(False)
+                self.volumeSlider.setRange(0, 0)
+            else:
+                self.volumeSlider.setRange(0, 100)
+                self.volumeSlider.setValue(100)
+                self.mediaPlayer.setMedia(
                     QMediaContent(QUrl.fromLocalFile(fileName)))
-            self.playButton.setEnabled(True)
+                self.errorLabel.setText('')
+                self.playButton.setEnabled(True)
 
     def exitCall(self):
         sys.exit(app.exec_())
@@ -127,6 +145,55 @@ class AudioWindow(QMainWindow):
     def handleError(self):
         self.playButton.setEnabled(False)
         self.errorLabel.setText("Error: " + self.mediaPlayer.errorString())
+
+    def showInfo(self):
+        self.info_window = InfoWindow(self.file_info)
+        self.info_window.show()
+
+
+class InfoWindow(QWidget):
+    def __init__(self, file_info):
+        super().__init__()
+        self.file_info = file_info
+        self.setWindowTitle('Audio info')
+        layout = QVBoxLayout(self)
+        infoLabel = QLabel()
+        infoLabel.setText(self.make_text())
+        layout.addWidget(infoLabel)
+        self.setLayout(layout)
+
+    def make_text(self):
+        text = ''
+        if self.file_info:
+            text = '''                      minimum block size: {0} samples
+                      maximum block size: {1} samples
+                      minimum frame size: {2} bytes
+                      maximum frame size: {3} bytes
+                      sample rate: {4} Hz
+                      number of channels: {5}
+                      bits per sample: {6}
+                      samples in stream: {7}'''.format(self.file_info.streaminfo['block_minsize'],
+                                                       self.file_info.streaminfo['block_maxsize'],
+                                                       self.file_info.streaminfo['frame_minsize'],
+                                                       self.file_info.streaminfo['frame_maxsize'],
+                                                       self.file_info.streaminfo['rate'],
+                                                       self.file_info.streaminfo['channels'],
+                                                       self.file_info.streaminfo['bits per sample'],
+                                                       self.file_info.streaminfo['samples in flow'])
+            if self.file_info.tags:
+                tags = ''
+                for tag in self.file_info.tags:
+                    if tag is 'vendor': continue
+                    i = 0
+                    tags += '\n                      {0}: '.format(tag)
+                    for tag_value in self.file_info.tags[tag]:
+                        tags += tag_value
+                        if i != len(self.file_info.tags[tag]) - 1:
+                            tags += ', '
+                        i += 1
+                text += tags
+
+        return text
 
 
 if __name__ == '__main__':

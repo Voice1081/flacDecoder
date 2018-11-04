@@ -9,6 +9,7 @@ class AudioFile:
         self.parse_metadata()
         self.streaminfo = {}
         self.parse_streaminfo()
+        self.tags = None
         if 'vorbis comment' in self.positions:
             self.tags = self.parse_vorbis_comment()
 
