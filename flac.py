@@ -10,8 +10,11 @@ class AudioFile:
         self.streaminfo = {}
         self.parse_streaminfo()
         self.tags = None
+        self.picture = None
         if 'vorbis comment' in self.positions:
             self.tags = self.parse_vorbis_comment()
+        if 'picture' in self.positions:
+            self.picture = self.parse_picture()
 
     def file_is_flac(self):
         with open(self.filename, 'rb') as f:
@@ -83,8 +86,7 @@ class AudioFile:
         descr = block[8+ext_len+4:8+ext_len+4+descr_len].decode()
         pic_len = int.from_bytes(block[8+ext_len+4+descr_len+16:8+ext_len+4+descr_len+20], byteorder='big')
         pic = block[8+ext_len+4+descr_len+20:8+ext_len+4+descr_len+pic_len]
-        with open('pic.{}'.format(ext), 'wb') as f:
-            f.write(pic)
+        return pic, ext
 
     def parse_metadata(self):
         with open(self.filename, 'rb') as f:
@@ -105,3 +107,7 @@ class AudioFile:
                     else:
                         self.positions['picture'].append(positions)
                 pos += size + 4
+
+    def save_picture(self):
+        with open('pic.{}'.format(self.picture[1]), 'wb') as f:
+            f.write(self.picture[0])

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 from flac import AudioFile
-from PyQt5.QtCore import QDir, Qt, QUrl
+from PyQt5.QtCore import QDir, Qt, QUrl, QByteArray
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
         QPushButton, QSizePolicy, QSlider, QStyle, QVBoxLayout, QWidget)
 from PyQt5.QtWidgets import QMainWindow,QWidget, QPushButton, QAction
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap, QGuiApplication
 import sys
 
 
@@ -53,14 +53,15 @@ class AudioWindow(QMainWindow):
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(self.exitCall)
 
-        infoAction = QAction('&File info', self)
-        infoAction.setStatusTip('Show file info')
-        infoAction.triggered.connect(self.showInfo)
+        self.infoAction = QAction('&File info', self)
+        self.infoAction.setStatusTip('Show file info')
+        self.infoAction.triggered.connect(self.showInfo)
+        self.infoAction.setEnabled(False)
 
         # Create menu bar and add action
         menuBar = self.menuBar()
         fileMenu = menuBar.addMenu('&File')
-        fileMenu.addAction(infoAction)
+        fileMenu.addAction(self.infoAction)
         fileMenu.addAction(openAction)
         fileMenu.addAction(exitAction)
 
@@ -98,11 +99,13 @@ class AudioWindow(QMainWindow):
                     self.file_info = AudioFile(fileName)
 
             except Exception:
+                self.infoAction.setEnabled(False)
                 self.errorLabel.setText('Error: file is not flac')
                 self.mediaPlayer.setMedia(QMediaContent())
                 self.playButton.setEnabled(False)
                 self.volumeSlider.setRange(0, 0)
             else:
+                self.infoAction.setEnabled(True)
                 self.volumeSlider.setRange(0, 100)
                 self.volumeSlider.setValue(100)
                 self.mediaPlayer.setMedia(
@@ -159,7 +162,19 @@ class InfoWindow(QWidget):
         layout = QVBoxLayout(self)
         infoLabel = QLabel()
         infoLabel.setText(self.make_text())
+        # pictureLabel = QLabel()
+        # if self.file_info:
+        #     if self.file_info.picture:
+        #         picture = QPixmap()
+        #         picture.loadFromData(self.file_info.picture[0], self.file_info.picture[1])
+        #         pictureLabel.setPixmap(picture)
+        self.saveButton = QPushButton('Save image')
+        if self.file_info:
+            if self.file_info.picture:
+                self.saveButton.setEnabled(True)
+                self.saveButton.clicked.connect(self.file_info.save_picture)
         layout.addWidget(infoLabel)
+        layout.addWidget(self.saveButton)
         self.setLayout(layout)
 
     def make_text(self):
