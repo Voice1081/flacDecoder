@@ -20,11 +20,12 @@ class Player:
                             metavar='FILE')
         self.parser.add_argument('-p', '--picture', help="Save picture", action='store_true', required=False)
         self.args = self.parser.parse_args()
-        self.file = AudioFile(self.args.filename)
         if self.args.picture:
+            self.file = AudioFile(self.args.filename, parse_frames=False)
             self.file.save_picture()
             sys.exit()
         else:
+            self.file = AudioFile(self.args.filename)
             self.player = QMediaPlayer()
             self.position = 0
             self.player.setMedia(QMediaContent(QUrl.fromLocalFile(self.file.filename)))
