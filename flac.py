@@ -111,3 +111,34 @@ class AudioFile:
     def save_picture(self):
         with open('pic.{}'.format(self.picture[1]), 'wb') as f:
             f.write(self.picture[0])
+
+    def make_text(self):
+        text = '''                      minimum block size: {0} samples
+                                  maximum block size: {1} samples
+                                  minimum frame size: {2} bytes
+                                  maximum frame size: {3} bytes
+                                  sample rate: {4} Hz
+                                  number of channels: {5}
+                                  bits per sample: {6}
+                                  samples in stream: {7}'''.format(self.streaminfo['block_minsize'],
+                                                                   self.streaminfo['block_maxsize'],
+                                                                   self.streaminfo['frame_minsize'],
+                                                                   self.streaminfo['frame_maxsize'],
+                                                                   self.streaminfo['rate'],
+                                                                   self.streaminfo['channels'],
+                                                                   self.streaminfo['bits per sample'],
+                                                                   self.streaminfo['samples in flow'])
+        if self.tags:
+            tags = ''
+            for tag in self.tags:
+                if tag is 'vendor': continue
+                i = 0
+                tags += '\n                      {0}: '.format(tag)
+                for tag_value in self.tags[tag]:
+                    tags += tag_value
+                    if i != len(self.tags[tag]) - 1:
+                        tags += ', '
+                    i += 1
+            text += tags
+
+        return text
