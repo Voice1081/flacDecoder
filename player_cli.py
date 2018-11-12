@@ -10,20 +10,28 @@ position_regex = re.compile('p ([-+])(\d+)')
 
 class Player:
     def __init__(self):
-        self.parser = argparse.ArgumentParser(description='flac player')
+        self.parser = argparse.ArgumentParser(description='flac player', usage="""python player_cli.py -f [filename]
+        use flag -p --picture to save picture from file to current directory
+        use commands pl an pa during playing for play and pause
+        use command v [int] to set volume
+        use command p [int] for rewinding""")
         self.parser.add_argument('-f', '--filename', dest='filename', action='store', required=True,
                             help='Input path to the flac file',
                             metavar='FILE')
+        self.parser.add_argument('-p', '--picture', help="Save picture", action='store_true', required=False)
         self.args = self.parser.parse_args()
         self.file = AudioFile(self.args.filename)
-        self.player = QMediaPlayer()
-        self.volume = 100
-        self.position = 0
-        self.player.setMedia(QMediaContent(QUrl.fromLocalFile(self.file.filename)))
-        print(self.file.make_text())
-        self.player.play()
-        self.player.stateChanged.connect(self.mediaStateChanged)
-        self.play()
+        if self.args.picture:
+            self.file.save_picture()
+            sys.exit()
+        else:
+            self.player = QMediaPlayer()
+            self.position = 0
+            self.player.setMedia(QMediaContent(QUrl.fromLocalFile(self.file.filename)))
+            print(self.file.make_text())
+            self.player.play()
+            self.player.stateChanged.connect(self.mediaStateChanged)
+            self.play()
 
     def play(self):
         while True:
