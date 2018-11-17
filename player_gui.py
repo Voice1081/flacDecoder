@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from flac import AudioFile
+import sys
 from PyQt5.QtCore import QDir, Qt, QUrl, QByteArray
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
         QPushButton, QSizePolicy, QSlider, QStyle, QVBoxLayout, QWidget)
 from PyQt5.QtWidgets import QMainWindow,QWidget, QPushButton, QAction
 from PyQt5.QtGui import QIcon, QPixmap, QGuiApplication
-import sys
+from flac import AudioFile
 
 
 class AudioWindow(QMainWindow):
@@ -98,7 +98,7 @@ class AudioWindow(QMainWindow):
             try:
                     self.file_info = AudioFile(fileName)
 
-            except Exception:
+            except ValueError:
                 self.infoAction.setEnabled(False)
                 self.errorLabel.setText('Error: file is not flac')
                 self.mediaPlayer.setMedia(QMediaContent())

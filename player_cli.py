@@ -1,9 +1,9 @@
-from flac import AudioFile
-from PyQt5.QtCore import QUrl, Qt, QCoreApplication
-from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 import argparse
 import sys
 import re
+from PyQt5.QtCore import QUrl, Qt, QCoreApplication
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+from flac import AudioFile
 volume_regex = re.compile('v (\d+)')
 position_regex = re.compile('p ([-+])(\d+)')
 
@@ -29,7 +29,7 @@ class Player:
             self.player = QMediaPlayer()
             self.position = 0
             self.player.setMedia(QMediaContent(QUrl.fromLocalFile(self.file.filename)))
-            print(self.file.make_text())
+            print(self.file.make_text() + str(len(self.file.frames)) + ' ' + str(self.file.first_frame) + ' ' + str(self.file.blocking_strategy))
             self.player.play()
             self.player.stateChanged.connect(self.mediaStateChanged)
             self.play()
