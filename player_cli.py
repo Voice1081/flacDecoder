@@ -29,7 +29,7 @@ class Player:
             self.player = QMediaPlayer()
             self.position = 0
             self.player.setMedia(QMediaContent(QUrl.fromLocalFile(self.file.filename)))
-            print(self.file.make_text() + str(len(self.file.frames)) + ' ' + str(self.file.first_frame) + ' ' + str(self.file.blocking_strategy))
+            print(self.file.make_text() + '\n' + str(len(self.file.frames)) + '\n' + str(self.file.first_frame))
             self.player.play()
             self.player.stateChanged.connect(self.mediaStateChanged)
             self.play()

@@ -1,5 +1,7 @@
 import re
 import constants
+from CRC8 import CRC8
+crc8 = CRC8()
 ext_regex = re.compile('.+?/(.+)')
 
 
@@ -162,8 +164,6 @@ class AudioFile:
             pos = self.first_frame
             counter = -1
             while pos < len(file):
-                #if bin(int.from_bytes(file[pos:pos+2], byteorder='big'))[2:16] != '11111111111110':
-                #if not (file[pos] == 255 and 251 >= file[pos+1] >= 248):
                 if not (b'\xff\xfb' >= file[pos:pos+2] >= b'\xff\xf8'):
                     pos += 1
                 else:
@@ -178,7 +178,8 @@ class AudioFile:
 
                         sample_rate = int(data[4:], 2)
 
-                        sample_rate = self. __get_sample_rate(file, pos, length, block_size_len, sample_rate)
+                        sample_rate, sample_rate_len = \
+                            self. __get_sample_rate(file, pos, length, block_size_len, sample_rate)
 
                         data = bin(file[pos + 3])[2:].zfill(8)
                         channels = int(data[:4], 2)
@@ -202,29 +203,38 @@ class AudioFile:
                         if self.blocking_strategy == 0:
                             if frame_sample_number != counter:
                                 raise ValueError()
+
+                        if file[pos+4+block_size_len+sample_rate_len+length] != \
+                                crc8.get_crc(file[pos:pos+4+block_size_len+sample_rate_len+length]):
+                            raise ValueError()
                     except ValueError:
                         counter -= 1
                         pos += 1
                         continue
 
-                    pos += self.streaminfo['frame_minsize']
+                    pos += 5 + block_size_len + sample_rate_len + length
                     self.frames.append({})
                     self.frames[counter]['block size'] = block_size
                     self.frames[counter]['sample rate'] = sample_rate
                     self.frames[counter]['channels'] = channels
                     self.frames[counter]['sample size'] = sample_size
+                    self.frames[counter]['offset'] = pos
                     if self.blocking_strategy:
-                        self.frames[counter]['frame number'] = frame_sample_number
-                    else:
                         self.frames[counter]['sample number'] = frame_sample_number
 
     @staticmethod
     def __decode_utf8(file, pos):
         number_of_bytes = 1
         first_byte = bin(file[pos])[2:].zfill(8)
-        while first_byte[number_of_bytes - 1] == 1:
+        while first_byte[number_of_bytes - 1] == '1':
             number_of_bytes += 1
-        number = first_byte[number_of_bytes:]
+            if number_of_bytes == 8:
+                raise ValueError()
+        if number_of_bytes == 1:
+            number = first_byte[1:]
+        else:
+            number_of_bytes -= 1
+            number = first_byte[number_of_bytes + 1:]
         for i in range(pos + 1, pos + number_of_bytes):
             number += bin(file[i])[4:]
         return number_of_bytes, int(number, 2)
@@ -248,6 +258,7 @@ class AudioFile:
         return block_size, block_size_len
 
     def __get_sample_rate(self, file, pos, length, block_size_len, sample_rate):
+        sample_rate_len = 0
         if sample_rate == 15:
             raise ValueError()
         if sample_rate == 0:
@@ -256,16 +267,16 @@ class AudioFile:
             sample_rate = constants.sample_rate[sample_rate]
         if sample_rate == 12:
             sample_rate = file[pos + 4 + length + block_size_len]
+            sample_rate_len = 1
         if sample_rate == 13:
             sample_rate = int.from_bytes(file[pos + 4 + length + block_size_len:pos + 6 + length + block_size_len],
                                          byteorder='big') / 1000
+            sample_rate_len = 2
         if sample_rate == 14:
             sample_rate = int.from_bytes(file[pos + 4 + length + block_size_len:pos + 6 + length + block_size_len],
                                          byteorder='big') / 100
-        return sample_rate
-
-
-
+            sample_rate_len = 2
+        return sample_rate, sample_rate_len
 
     def save_picture(self):
         with open('pic.{}'.format(self.picture[0]['extension']), 'wb') as f:
@@ -307,3 +318,12 @@ class AudioFile:
             text += pictures
 
         return text
+
+
+def main():
+    au = AudioFile('sample2.flac')
+
+
+if __name__ == '__main__':
+    main()
+
