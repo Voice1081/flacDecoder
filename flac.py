@@ -6,7 +6,7 @@ ext_regex = re.compile('.+?/(.+)')
 
 
 class AudioFile:
-    def __init__(self, filename, parse_frames=True):
+    def __init__(self, filename):
         self.filename = filename
         self.file_is_flac()
         self.frames = []
@@ -15,8 +15,8 @@ class AudioFile:
         self.streaminfo = {}
         self.parse_streaminfo()
         self.blocking_strategy = self.__get_blocking_strategy()
-        if parse_frames:
-            self.parse_frames()
+        # if parse_frames:
+        #     self.parse_frames()
         self.tags = None
         self.picture = []
         if 'vorbis comment' in self.positions:
@@ -279,7 +279,7 @@ class AudioFile:
         return sample_rate, sample_rate_len
 
     def save_picture(self):
-        with open('pic.{}'.format(self.picture[0]['extension']), 'wb') as f:
+        with open('{0}pic.{1}'.format(self.filename.split('.')[0], self.picture[0]['extension']), 'wb') as f:
             f.write(self.picture[0]['pic'])
 
     def make_text(self):
@@ -319,11 +319,18 @@ class AudioFile:
 
         return text
 
-
-def main():
-    au = AudioFile('sample2.flac')
-
-
-if __name__ == '__main__':
-    main()
+    def save_frames_text(self):
+        text = ''
+        for i in range(0, len(self.frames)):
+            text += constants.frames_text.format(i,
+                                                 self.frames[i]['offset'],
+                                                 self.frames[i]['block size'],
+                                                 self.frames[i]['sample rate'],
+                                                 self.frames[i]['channels'],
+                                                 self.frames[i]['sample size'])
+            if self.blocking_strategy:
+                text += constants.sample_number_text.format(self.frames[i]['sample number'])
+            text += '\n\n'
+        with open(self.filename.split('.')[0] + ' frames.txt', 'w') as f:
+            f.write(text)
 

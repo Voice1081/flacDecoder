@@ -43,3 +43,12 @@ pic_text = '''{0}. Type of picture:{1}
                 Height: {5}
                 Color depth: {6}
                 Number of colors: {7}\n'''
+
+frames_text = '''frame {0}: 
+                           offset {1} 
+                           block size: {2} 
+                           samples sample rate {3}: kHz 
+                           channels {4} 
+                           sample size {5} bits per sample'''
+
+sample_number_text = '\n                           sample number: {}'

@@ -19,8 +19,6 @@ class AudioWindow(QMainWindow):
         self.mediaPlayer = QMediaPlayer()
         self.file_info = None
 
-        #videoWidget = QVideoWidget()
-
         self.playButton = QPushButton()
         self.playButton.setEnabled(False)
         self.playButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
@@ -76,14 +74,12 @@ class AudioWindow(QMainWindow):
         controlLayout.addWidget(self.volumeSlider)
 
         layout = QVBoxLayout()
-        #layout.addWidget(videoWidget)
         layout.addLayout(controlLayout)
         layout.addWidget(self.errorLabel)
 
         # Set widget to contain window contents
         wid.setLayout(layout)
 
-        #self.mediaPlayer.setVideoOutput(videoWidget)
         self.mediaPlayer.stateChanged.connect(self.mediaStateChanged)
         self.mediaPlayer.positionChanged.connect(self.positionChanged)
         self.mediaPlayer.durationChanged.connect(self.durationChanged)
@@ -161,19 +157,17 @@ class InfoWindow(QWidget):
         layout = QVBoxLayout(self)
         infoLabel = QLabel()
         infoLabel.setText(self.make_text())
-        # pictureLabel = QLabel()
-        # if self.file_info:
-        #     if self.file_info.picture:
-        #         picture = QPixmap()
-        #         picture.loadFromData(self.file_info.picture[0], self.file_info.picture[1])
-        #         pictureLabel.setPixmap(picture)
         self.saveButton = QPushButton('Save image')
+        self.saveFramesButton = QPushButton('Save frames info')
         if self.file_info:
+            self.saveFramesButton.setEnabled(True)
+            self.saveFramesButton.clicked.connect(self.save_frames_info)
             if self.file_info.picture:
                 self.saveButton.setEnabled(True)
                 self.saveButton.clicked.connect(self.file_info.save_picture)
         layout.addWidget(infoLabel)
         layout.addWidget(self.saveButton)
+        layout.addWidget(self.saveFramesButton)
         self.setLayout(layout)
 
     def make_text(self):
@@ -182,6 +176,10 @@ class InfoWindow(QWidget):
         else:
             text = ''
         return text
+
+    def save_frames_info(self):
+        self.file_info.parse_frames()
+        self.file_info.save_frames_text()
 
 
 if __name__ == '__main__':
