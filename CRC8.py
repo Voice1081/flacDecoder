@@ -22,12 +22,3 @@ class CRC8:
         for b in data:
             crc = self.crcTable[crc ^ b]
         return crc
-
-
-def main():
-    crc = CRC8()
-    print(str(int.to_bytes(crc.get_crc(b'\xff\xf8\xc9\x18\xd7\xa6'), 1, byteorder='big')))
-
-
-if __name__ == '__main__':
-    main()

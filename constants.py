@@ -52,3 +52,9 @@ frames_text = '''frame {0}:
                            sample size {5} bits per sample'''
 
 sample_number_text = '\n                           sample number: {}'
+
+cuesheet_text = '''\nCUESHEET:
+            Media catalog number: {0}
+            Lead-in samples: {1}
+            Corresponds to CD: {2}'''
+track_text = '{0}. Offset: {1}, ISRC: {2}, Track type: {3}, pre-emphasis: {4}'
