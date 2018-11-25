@@ -20,11 +20,13 @@ picture_descr = {0: 'other',
                  19: 'Band/artist logotype',
                  20: 'Publisher/Studio logotype'}
 
-channels = {8: 'left/side stereo', 9: 'right/side stereo', 10: 'mid/side stereo'}
+channels = {8: 'left/side stereo', 9: 'right/side stereo',
+            10: 'mid/side stereo'}
 
 sample_size = {1: 8, 2: 12, 4: 16, 5: 20, 6: 24}
 
-sample_rate = {1: 88.2, 2: 176.4, 3: 192, 4: 8, 5: 16, 6: 22.05, 7: 24, 8: 32, 9: 44.1, 10: 48, 11: 96}
+sample_rate = {1: 88.2, 2: 176.4, 3: 192, 4: 8, 5: 16, 6: 22.05, 7: 24, 8: 32,
+               9: 44.1, 10: 48, 11: 96}
 
 text = '''STREAMINFO:
         minimum block size: {0} samples

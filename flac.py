@@ -53,7 +53,7 @@ class AudioFile:
         vendor = block[4:4+vendor_length].decode()
         tags['vendor'] = vendor
         tags_count = int.from_bytes(block[4+vendor_length:8+vendor_length],
-                                        byteorder='little')
+                                    byteorder='little')
         pos = 8 + vendor_length
         tag_regex = re.compile('(.+?)=(.+)')
         for i in range(0, tags_count):
@@ -230,7 +230,6 @@ class AudioFile:
             counter += 1
         return seektable
 
-
     def __get_blocking_strategy(self):
         with open(self.filename, 'rb') as f:
             file = f.read()
@@ -245,63 +244,23 @@ class AudioFile:
                 if not (b'\xff\xfb' >= file[pos:pos+2] >= b'\xff\xf8'):
                     pos += 1
                 else:
+                    counter += 1
                     try:
-                        counter += 1
-                        if bin(file[pos+1])[-1] != self.blocking_strategy:
-                            raise ValueError()
-                        length, frame_sample_number = \
-                            self.__decode_utf8(file, pos + 4)
-                        data = bin(file[pos+2])[2:].zfill(8)
-                        block_size = int(data[:4], 2)
-                        block_size, block_size_len = \
-                            self.__get_block_size(file, pos, length,
-                                                  block_size)
-
-                        sample_rate = int(data[4:], 2)
-
-                        sample_rate, sample_rate_len = \
-                            self. __get_sample_rate(file, pos, length,
-                                                    block_size_len,
-                                                    sample_rate)
-
-                        data = bin(file[pos + 3])[2:].zfill(8)
-                        channels = int(data[:4], 2)
-
-                        if channels >= 11:
-                            raise ValueError()
-                        if 0 <= channels <= 7:
-                            channels += 1
-                        else:
-                            channels = constants.channels[channels]
-
-                        sample_size = int(data[4:7], 2)
-
-                        if sample_size == 3 or sample_size == 7:
-                            raise ValueError()
-                        if sample_size == 0:
-                            sample_size = self.streaminfo['bits per sample']
-                        else:
-                            sample_size = constants.sample_size[sample_size]
-
-                        if self.blocking_strategy == 0:
-                            if frame_sample_number != counter:
-                                raise ValueError()
-
-                        end_pos = pos+4+block_size_len+sample_rate_len+length
-                        if file[end_pos] != crc8.get_crc(file[pos:end_pos]):
-                            raise ValueError()
+                        block_size, sample_rate, channels, sample_size, \
+                         offset, \
+                         frame_sample_number = \
+                         self.parse_one_frame(file, pos, counter)
                     except ValueError:
                         counter -= 1
                         pos += 1
                         continue
-
-                    pos += 5 + block_size_len + sample_rate_len + length
                     self.frames.append({})
                     self.frames[counter]['block size'] = block_size
                     self.frames[counter]['sample rate'] = sample_rate
                     self.frames[counter]['channels'] = channels
                     self.frames[counter]['sample size'] = sample_size
                     self.frames[counter]['offset'] = pos
+                    pos = offset
                     if self.blocking_strategy:
                         self.frames[counter]['sample number'] = \
                             frame_sample_number
@@ -366,6 +325,52 @@ class AudioFile:
                                          byteorder='big') / 100
             sample_rate_len = 2
         return sample_rate, sample_rate_len
+
+    def parse_one_frame(self, file, pos, counter):
+        if bin(file[pos + 1])[-1] != self.blocking_strategy:
+            raise ValueError()
+        length, frame_sample_number = self.__decode_utf8(file, pos + 4)
+        data = bin(file[pos + 2])[2:].zfill(8)
+        block_size = int(data[:4], 2)
+        block_size, block_size_len = self.__get_block_size(file, pos, length,
+                                                           block_size)
+
+        sample_rate = int(data[4:], 2)
+
+        sample_rate, sample_rate_len = self.__get_sample_rate(file, pos,
+                                                              length,
+                                                              block_size_len,
+                                                              sample_rate)
+
+        data = bin(file[pos + 3])[2:].zfill(8)
+        channels = int(data[:4], 2)
+
+        if channels >= 11:
+            raise ValueError()
+        if 0 <= channels <= 7:
+            channels += 1
+        else:
+            channels = constants.channels[channels]
+
+        sample_size = int(data[4:7], 2)
+
+        if sample_size == 3 or sample_size == 7:
+            raise ValueError()
+        if sample_size == 0:
+            sample_size = self.streaminfo['bits per sample']
+        else:
+            sample_size = constants.sample_size[sample_size]
+
+        if self.blocking_strategy == 0:
+            if frame_sample_number != counter:
+                raise ValueError()
+
+        end_pos = pos + 4 + block_size_len + sample_rate_len + length
+        if file[end_pos] != crc8.get_crc(file[pos:end_pos]):
+            raise ValueError()
+        pos += 5 + block_size_len + sample_rate_len + length
+        return block_size, sample_rate, channels, sample_size, pos, \
+            frame_sample_number
 
     def save_picture(self):
         with open('{0}pic.{1}'.
