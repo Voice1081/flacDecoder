@@ -226,7 +226,7 @@ class AudioFile:
             seektable[counter]['first sample'] = block[pos:pos+8]
             seektable[counter]['offset'] = block[pos+8:pos+16]
             seektable[counter]['number of samples'] = block[pos+16:pos+18]
-            pos += 17
+            pos += 18
             counter += 1
         return seektable
 
