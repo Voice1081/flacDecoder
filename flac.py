@@ -59,12 +59,13 @@ class AudioFile:
         for i in range(0, tags_count):
             length = int.from_bytes(block[pos:pos+4], byteorder='little')
             tag = tag_regex.match(block[pos+4:pos+4+length].decode())
-            tag_name = tag.group(1)
-            tag_value = tag.group(2)
-            if tag_name in tags:
-                tags[tag_name].add(tag_value)
-            else:
-                tags[tag_name] = {tag_value}
+            if tag:
+                tag_name = tag.group(1)
+                tag_value = tag.group(2)
+                if tag_name in tags:
+                    tags[tag_name].add(tag_value)
+                else:
+                    tags[tag_name] = {tag_value}
             pos += 4 + length
         return tags
 
@@ -199,10 +200,12 @@ class AudioFile:
                                                              byteorder='big')
             cuesheet['tracks'][i]['track number'] = block[pos+8]
             cuesheet['tracks'][i]['isrc'] = block[pos+9:pos+21].decode()
-            cuesheet['tracks'][i]['is audio'] = int(bin(block[pos+21])[2])
-            cuesheet['tracks'][i]['pre-emphasis'] = int(bin(block[pos+21])[3])
-            number_of_track_points = block[pos+22]
-            pos += 23
+            cuesheet['tracks'][i]['is audio'] = int(bin(block[pos+21])
+                                                    .zfill(8)[2])
+            cuesheet['tracks'][i]['pre-emphasis'] = int(bin(block[pos+21])
+                                                        .zfill(8)[3])
+            number_of_track_points = block[pos+35]
+            pos += 36
             cuesheet['tracks'][i]['track index'] = []
             for j in range(0, number_of_track_points):
                 cuesheet['tracks'][i]['track index'].append({})
@@ -419,10 +422,10 @@ class AudioFile:
             cuesheet_text = \
                 constants.cuesheet_text.format(self.cuesheet
                                                ['media catalog number'],
-                                                self.cuesheet
-                                                ['lead in samples'],
-                                                self.cuesheet
-                                                 ['corresponds to cd'])
+                                               self.cuesheet
+                                               ['lead in samples'],
+                                               self.cuesheet
+                                               ['corresponds to cd'])
             for i in range(0, len(self.cuesheet['tracks'])):
                 track_text = constants.track_text.\
                     format(self.cuesheet['tracks'][i]['track number'],
@@ -458,4 +461,3 @@ class AudioFile:
             text += '\n\n'
         with open(self.filename.split('.')[0] + ' frames.txt', 'w') as f:
             f.write(text)
-

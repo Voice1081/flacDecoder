@@ -4,8 +4,8 @@ import re
 from PyQt5.QtCore import QUrl, Qt, QCoreApplication
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from flac import AudioFile
-volume_regex = re.compile('v (\d+)')
-position_regex = re.compile('p ([-+])(\d+)')
+volume_regex = re.compile(r'v (\d+)')
+position_regex = re.compile(r'p ([-+])(\d+)')
 
 
 class Player:

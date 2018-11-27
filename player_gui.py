@@ -4,8 +4,9 @@ import sys
 from PyQt5.QtCore import QDir, Qt, QUrl, QByteArray
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QLabel,
-        QPushButton, QSizePolicy, QSlider, QStyle, QVBoxLayout, QWidget)
-from PyQt5.QtWidgets import QMainWindow,QWidget, QPushButton, QAction
+                             QPushButton, QSizePolicy, QSlider, QStyle,
+                             QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import QMainWindow, QWidget, QPushButton, QAction
 from PyQt5.QtGui import QIcon, QPixmap, QGuiApplication
 from flac import AudioFile
 
@@ -34,7 +35,7 @@ class AudioWindow(QMainWindow):
 
         self.errorLabel = QLabel()
         self.errorLabel.setSizePolicy(QSizePolicy.Preferred,
-                QSizePolicy.Maximum)
+                                      QSizePolicy.Maximum)
 
         self.info_window = InfoWindow(self.file_info)
 

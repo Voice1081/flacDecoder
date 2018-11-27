@@ -6,6 +6,7 @@ class TestFlacParser(unittest.TestCase):
 
     def setUp(self):
         self.filename = 'Sample.flac'
+        self.filename_with_cuesheet = 'cuesheet_track.flac'
         self.number_of_frames = 3324
         self.audio_file = AudioFile(self.filename)
 
@@ -28,3 +29,7 @@ class TestFlacParser(unittest.TestCase):
 
     def test_seektable(self):
         self.assertEqual(len(self.audio_file.seektable), 100)
+
+    def test_cuesheet(self):
+        file = AudioFile(self.filename_with_cuesheet)
+        self.assertGreater(len(file.cuesheet), 0)
